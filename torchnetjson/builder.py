@@ -28,16 +28,31 @@ class _JSONNet(nn.Module):
         intermediate_dict = {'inputs': inputs}
         op_list = self.__param_dict['op_list']
         for op_spec in op_list:
-            # op_name, op_params, op_in, op_out =
-            # ins can be a list, which contains a fixed number of inputs
-            # and it will be unpacked when passed into module ops,
-            # and depends with passed into other ops.
-            # these should be customized later.
-            # or a string, which is just a single input
-            # out will always be taken unchanged,
-            # which can be a list or singleton.
-            # splitting it is at the user's own disposal for now.
-            pass
+            # this function does the actual work.
+            # it can be recursively called.
+            self._forward_one_op(op_spec, intermediate_dict)
+
+    def _forward_one_op(self, op_spec, intermediate_dict):
+        # op_name, op_params, op_in, op_out =
+        # ins can be a list, which contains a fixed number of inputs
+        # and it will be unpacked/packed when passed into ops,
+        # depending what you want.
+        #
+        # each op has its own packing/unpacking semantics
+        # and you can override.
+        #
+        # for example, torch.cat is packing.
+        #
+        # for sequential, I favor unpacking,
+        # which matches forward()'s API more closely.
+        # (which is violated by torch's own Sequential, which assumes
+        # single input).
+        #
+        # or a string, which is just a single input
+        # out will always be taken unchanged,
+        # which can be a list or singleton.
+        # splitting it is at the user's own disposal for now.
+        pass
 
 
 def build_net(param_dict):
