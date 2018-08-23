@@ -3,14 +3,14 @@ from torch import nn
 _module_mapping_official = dict()
 
 
-def _register_module_official(name, module: nn.Module):
+def _register_module_official(name: str, module: nn.Module) -> None:
     # TODO: more strict check later.
     assert name.lower() == name
     assert name.startswith('torch.')
     _module_mapping_official[name] = module
 
 
-def _register_module_official_loader():
+def _register_module_official_loader() -> None:
     # TODO: make this kind of automatic.
     _register_module_official('torch.nn.conv2d', nn.Conv2d)
     _register_module_official('torch.nn.convtranspose2d', nn.ConvTranspose2d)
@@ -24,7 +24,7 @@ _register_module_official_loader()
 _module_mapping_custom = dict()
 
 
-def register_module_custom(name, module: nn.Module):
+def register_module_custom(name: str, module: nn.Module) -> None:
     # this should be called by user code to register modules they want.
     # TODO: more strict check later.
     assert name.lower() == name
@@ -32,7 +32,7 @@ def register_module_custom(name, module: nn.Module):
     _module_mapping_custom[name] = module
 
 
-def init_module(name, params):
+def init_module(name: str, params: dict) -> nn.Module:
     # TODO: more strict check later.
     assert name.lower() == name
     if name.startswith('torch.'):

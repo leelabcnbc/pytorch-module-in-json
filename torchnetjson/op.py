@@ -15,9 +15,10 @@
 # i.e. for loop op, we should make sure it's intermediates has no
 # name collision with outer intermediate.
 # to achieve this, we should pass the same intermediate over and over
-from typing import Callable
+from typing import Callable, Union
 import torch
 from .net import JSONNet
+from .typing import io_type
 
 
 def get_op(net: JSONNet, op_name: str,
@@ -26,9 +27,10 @@ def get_op(net: JSONNet, op_name: str,
     return op_this
 
 
-def _module_op(net: JSONNet, module_name: str, *, unpack=True) -> Callable:
+def _module_op(net: JSONNet, module_name: str, *,
+               unpack: bool = True) -> Callable:
     # get module
-    def module_op_fn(inputs):
+    def module_op_fn(inputs: io_type) -> io_type:
         mod = net.get_module(module_name)
         if isinstance(inputs, torch.Tensor) or not unpack:
             return mod(inputs)

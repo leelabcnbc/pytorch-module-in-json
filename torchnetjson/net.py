@@ -1,16 +1,19 @@
+from typing import Union
 from torch import nn
 from .module import init_module
+from .typing import io_type
 
 
-class JSONNet(nn.Module):
-    def _add_modules(self, module_dict):
+# https://stackoverflow.com/questions/49888155/class-cannot-subclass-qobject-has-type-any-using-mypy  # noqa: E501
+class JSONNet(nn.Module):  # type: ignore
+    def _add_modules(self, module_dict: dict) -> None:
         for attrname, (modname, modparams) in module_dict.items():
             self.add_module(attrname, init_module(modname, modparams))
 
-    def get_module(self, name):
+    def get_module(self, name: str) -> nn.Module:
         return self._modules[name]
 
-    def __init__(self, param_dict):
+    def __init__(self, param_dict: dict) -> None:
         super().__init__()
         self.__param_dict = param_dict
         self._add_modules(param_dict['module_dict'])
@@ -21,12 +24,13 @@ class JSONNet(nn.Module):
         # modules.
         # I like to separate this from architecture spec.
 
-    def forward(self, *inputs, state_dict=None, verbose=False):
+    def forward(self, *inputs: list, state_dict: Union[dict, None] = None,
+                verbose: bool = False) -> io_type:
         # state_dict is typically used for debugging,
         # checking internal state, etc.
         # it should be a subset of intermediate_dict
         # I will basically do things according to op_list
-        temp_dict = {'inputs': inputs}
+        temp_dict: dict = {'inputs': inputs}
         temp_dict.update({f'input{i}': v for i, v in enumerate(inputs)})
         if verbose:
             print('=====initial temp dict=====')
@@ -50,7 +54,7 @@ class JSONNet(nn.Module):
         return self.get_io(self.__param_dict['out'], temp_dict)
 
     @staticmethod
-    def get_io(io_spec, temp_dict):
+    def get_io(io_spec: Union[str, list], temp_dict: dict) -> io_type:
         if isinstance(io_spec, str):
             return temp_dict[io_spec]
         elif isinstance(io_spec, list):
@@ -58,7 +62,7 @@ class JSONNet(nn.Module):
         else:
             raise NotImplementedError
 
-    def _forward_one_op(self, op_spec, temp_dict):
+    def _forward_one_op(self, op_spec: dict, temp_dict: dict) -> None:
         from .op import get_op
         # different kinds of ops.
         #

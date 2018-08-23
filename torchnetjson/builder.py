@@ -3,7 +3,7 @@ import json
 from .net import JSONNet
 
 
-def build_net(param_dict):
+def build_net(param_dict: dict) -> JSONNet:
     # make sure it's really JSON serializable.
     param_dict_normalized = json.loads(json.dumps(param_dict))
     assert param_dict_normalized == param_dict

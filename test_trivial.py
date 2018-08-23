@@ -25,4 +25,4 @@ net = build_net(param_dict)
 input_this = tensor([1.0, 2.0, 3.0])
 output_this = net(input_this, verbose=True).detach()
 
-print(output_this)
+print(output_this, type(output_this))
