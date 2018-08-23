@@ -21,17 +21,31 @@ class JSONNet(nn.Module):
         # modules.
         # I like to separate this from architecture spec.
 
-    def forward(self, *inputs, state_dict=None):
+    def forward(self, *inputs, state_dict=None, verbose=False):
         # state_dict is typically used for debugging,
         # checking internal state, etc.
         # it should be a subset of intermediate_dict
         # I will basically do things according to op_list
         temp_dict = {'inputs': inputs}
+        temp_dict.update({f'input{i}': v for i, v in enumerate(inputs)})
+        if verbose:
+            print('=====initial temp dict=====')
+            print(temp_dict)
+            print('\n')
         op_list = self.__param_dict['op_list']
-        for op_spec in op_list:
+        for i, op_spec in enumerate(op_list):
+            if verbose:
+                print(f'=====op {i} start=====')
             # this function does the actual work.
             # it can be recursively called.
             self._forward_one_op(op_spec, temp_dict)
+            if verbose:
+                print(f'=====op {i} end=====')
+                print('\n')
+        if verbose:
+            print('=====final temp dict=====')
+            print(temp_dict)
+            print('\n')
 
         return self.get_io(self.__param_dict['out'], temp_dict)
 
