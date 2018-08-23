@@ -7,8 +7,10 @@ from .typing import io_type
 # https://stackoverflow.com/questions/49888155/class-cannot-subclass-qobject-has-type-any-using-mypy  # noqa: E501
 class JSONNet(nn.Module):  # type: ignore
     def _add_modules(self, module_dict: dict) -> None:
-        for attrname, (modname, modparams) in module_dict.items():
-            self.add_module(attrname, init_module(modname, modparams))
+        for attrname, modspec in module_dict.items():
+            self.add_module(attrname, init_module(modspec['name'],
+                                                  modspec['params'],
+                                                  modspec['init']))
 
     def get_module(self, name: str) -> nn.Module:
         return self._modules[name]

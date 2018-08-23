@@ -2,7 +2,9 @@
 from torch import tensor
 from torchnetjson.builder import build_net
 module_dict = {
-    'fc': ['torch.nn.linear', {'in_features': 3, 'out_features': 5}]
+    'fc': {'name':'torch.nn.linear',
+           'params': {'in_features': 3, 'out_features': 5},
+           'init': None},
 }
 
 op_list = [
