@@ -8,16 +8,17 @@ from .typing import io_type
 class JSONNet(nn.Module):  # type: ignore
     def _add_modules(self, module_dict: dict) -> None:
         for attrname, modspec in module_dict.items():
-            self.add_module(attrname, init_module(modspec['name'],
-                                                  modspec['params'],
-                                                  modspec['init']))
+            self.moduledict[attrname] = init_module(modspec['name'],
+                                                    modspec['params'],
+                                                    modspec['init'])
 
     def get_module(self, name: str) -> nn.Module:
-        return self._modules[name]
+        return self.moduledict[name]
 
     def __init__(self, param_dict: dict) -> None:
         super().__init__()
         self.__param_dict = param_dict
+        self.moduledict = nn.ModuleDict()
         self._add_modules(param_dict['module_dict'])
         # TODO some initialization stuff later.
         # or I can do initialization in the module_dict directly.
@@ -60,7 +61,7 @@ class JSONNet(nn.Module):  # type: ignore
         if isinstance(io_spec, str):
             return temp_dict[io_spec]
         elif isinstance(io_spec, list):
-            return [temp_dict[x] for x in io_spec]
+            return tuple([temp_dict[x] for x in io_spec])
         else:
             raise NotImplementedError
 
