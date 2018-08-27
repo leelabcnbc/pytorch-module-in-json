@@ -15,31 +15,72 @@
 # i.e. for loop op, we should make sure it's intermediates has no
 # name collision with outer intermediate.
 # to achieve this, we should pass the same intermediate over and over
-from typing import Callable, Union
+from typing import Dict
 import torch
 from .net import JSONNet
-from .typing import io_type
+from .typing import io_type, op_constructor_type, op_type
 
 
-def get_op(net: JSONNet, op_name: str,
-           args: list, kwargs: dict) -> Callable:
-    op_this = _op_dict[op_name](net, *args, **kwargs)
-    return op_this
+def get_op(net: JSONNet, op_spec: dict) -> op_type:
+    # TODO: do such check before doing forward()
+    assert op_spec.keys() == {'name', 'args', 'kwargs'}
+    return _get_op_inner(net, op_spec['name'],
+                         op_spec['args'], op_spec['kwargs'])
+
+
+def _get_op_inner(net: JSONNet, op_name: str,
+                  args: list, kwargs: dict) -> op_type:
+    """
+
+    :param net: the network to be built.
+    :param op_name: name of the operation.
+    :param args: positional args of the operation.
+    :param kwargs: kwargs args of the operation.
+    :return: a function that maps input to output.
+    """
+    op_constructor = _op_dict[op_name]
+    return op_constructor(net, *args, **kwargs)
 
 
 def _module_op(net: JSONNet, module_name: str, *,
-               unpack: bool = True) -> Callable:
+               unpack: bool = True) -> op_type:
     # get module
-    def module_op_fn(inputs: io_type) -> io_type:
+    def _op_fn(inputs: io_type) -> io_type:
         mod = net.get_module(module_name)
         if isinstance(inputs, torch.Tensor) or not unpack:
             return mod(inputs)
         else:
             return mod(*inputs)
 
-    return module_op_fn
+    return _op_fn
 
 
-_op_dict = {
+def _sequential_op(net: JSONNet, list_of_op_specs: list) -> op_type:
+    # get module list
+    op_list = [get_op(net, op_spec) for op_spec in list_of_op_specs]
+
+    def _op_fn(inputs: io_type) -> io_type:
+        for op in op_list:
+            inputs = op(inputs)
+        return inputs
+
+    return _op_fn
+
+
+def _detach_op(net: JSONNet) -> op_type:
+    def _op_fn(inputs: io_type) -> io_type:
+        if isinstance(inputs, torch.Tensor):
+            return inputs.detach()
+        elif isinstance(inputs, tuple):
+            return tuple(x.detach() for x in inputs)
+        else:
+            raise TypeError
+
+    return _op_fn
+
+
+_op_dict: Dict[str, op_constructor_type] = {
     'module': _module_op,
+    'sequential': _sequential_op,
+    'detach': _detach_op,
 }

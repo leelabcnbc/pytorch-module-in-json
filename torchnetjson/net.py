@@ -1,5 +1,5 @@
 from typing import Union
-from torch import nn
+from torch import nn, Tensor
 from .module import init_module
 from .typing import io_type
 
@@ -61,16 +61,25 @@ class JSONNet(nn.Module):  # type: ignore
         if isinstance(io_spec, str):
             return temp_dict[io_spec]
         elif isinstance(io_spec, list):
-            return tuple([temp_dict[x] for x in io_spec])
+            return tuple(temp_dict[x] for x in io_spec)
         else:
             raise NotImplementedError
 
-    def _forward_one_op(self, op_spec: dict, temp_dict: dict) -> None:
+    @staticmethod
+    def set_io(name: str, value: io_type, temp_dict: dict) -> None:
+        # check it's indeed io_type
+        if not isinstance(value, Tensor):
+            assert isinstance(value, tuple)
+            for _ in value:
+                assert isinstance(_, Tensor)
+        temp_dict[name] = value
+
+    def _forward_one_op(self, op_spec_full: dict, temp_dict: dict) -> None:
         from .op import get_op
         # different kinds of ops.
         #
-        # function op, concat, sequential, split, indexing, etc. they can take
-        #   additional parameters apart from op_in. also, we have detach.
+        # function op, concat, sequential, split, indexing, etc. they can
+        # take additional parameters apart from op_in. also, we have detach.
         #   for saving space
         # module op, using defined modules. all they take is op_in
         #
@@ -95,7 +104,8 @@ class JSONNet(nn.Module):  # type: ignore
         # out will always be taken unchanged,
         # which can be a list/tuple or singleton.
         # splitting it is at the user's own disposal for now.
-        op_this = get_op(self, op_spec['name'],
-                         op_spec['args'], op_spec['kwargs'])
-        temp_dict[op_spec['out']] = op_this(self.get_io(op_spec['in'],
-                                                        temp_dict))
+        assert op_spec_full.keys() == {'in', 'out', 'name', 'args', 'kwargs'}
+        op_this = get_op(self, {k: op_spec_full[k] for k in
+                                {'name', 'args', 'kwargs'}})
+        in_this = self.get_io(op_spec_full['in'], temp_dict)
+        self.set_io(op_spec_full['out'], op_this(in_this), temp_dict)

@@ -38,6 +38,7 @@ def init_module(name: str, params: dict, init: Union[dict, None]) -> nn.Module:
     assert init is None
     # TODO: more strict check later.
     assert name.lower() == name
+    # for module, using kwargs only (no positional args) should be sufficient.
     if name.startswith('torch.'):
         return _module_mapping_official[name](**params)
     else:
