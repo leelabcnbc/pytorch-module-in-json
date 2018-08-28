@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 from torch import nn, Tensor
 from .module import init_module
 from .typing import io_type
@@ -57,11 +57,14 @@ class JSONNet(nn.Module):  # type: ignore
         return self.get_io(self.__param_dict['out'], temp_dict)
 
     @staticmethod
-    def get_io(io_spec: Union[str, list], temp_dict: dict) -> io_type:
+    def get_io(io_spec: Optional[Union[str, list]],
+               temp_dict: dict) -> io_type:
         if isinstance(io_spec, str):
             return temp_dict[io_spec]
         elif isinstance(io_spec, list):
             return tuple(temp_dict[x] for x in io_spec)
+        elif io_spec is None:
+            return None  # some op takes no input.
         else:
             raise NotImplementedError
 
