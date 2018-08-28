@@ -4,7 +4,9 @@ from torchnetjson.builder import build_net
 module_dict = {
     'fc': {'name':'torch.nn.linear',
            'params': {'in_features': 3, 'out_features': 5},
-           'init': None},
+           'init': {'strategy': 'normal',
+                    'parameters': {'std': 0.5}
+                    }},
 }
 
 op_list = [

@@ -1,6 +1,8 @@
 from typing import Union
 from torch import nn
 
+from .init import intialize_a_module
+
 _module_mapping_official = dict()
 
 
@@ -34,12 +36,15 @@ def register_module_custom(name: str, module: nn.Module) -> None:
 
 
 def init_module(name: str, params: dict, init: Union[dict, None]) -> nn.Module:
-    # will fix initialization later.
-    assert init is None
     # TODO: more strict check later.
     assert name.lower() == name
     # for module, using kwargs only (no positional args) should be sufficient.
     if name.startswith('torch.'):
-        return _module_mapping_official[name](**params)
+        mod = _module_mapping_official[name](**params)
     else:
-        return _module_mapping_custom[name](**params)
+        mod = _module_mapping_custom[name](**params)
+
+    if init is not None:
+        intialize_a_module(name, mod, init)
+
+    return mod
