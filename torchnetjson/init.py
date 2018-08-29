@@ -1,6 +1,6 @@
 """initializers"""
 
-from typing import Callable, Union, Iterable, Optional
+from typing import Callable, Union, Tuple
 
 from torch import nn
 
@@ -8,9 +8,9 @@ _init_mapping_official = dict()
 
 
 def standard_init(mod: nn.Module, init: dict, *,
-                  attrs_to_init: Optional[Iterable[str]]=None):
-    if attrs_to_init is None:
-        attrs_to_init = {'weight'}
+                  # use tuple, as order of initialization
+                  # matters for or determinism.
+                  attrs_to_init: Tuple[str, ...] = ('weight',)):
     # works for those modules with `weight` and possibly `bias`.
     assert init.keys() == {'strategy', 'parameters'}
 

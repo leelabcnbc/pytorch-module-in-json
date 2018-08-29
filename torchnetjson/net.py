@@ -7,7 +7,11 @@ from .typing import io_type
 # https://stackoverflow.com/questions/49888155/class-cannot-subclass-qobject-has-type-any-using-mypy  # noqa: E501
 class JSONNet(nn.Module):  # type: ignore
     def _add_modules(self, module_dict: dict) -> None:
-        for attrname, modspec in module_dict.items():
+        # sort the attr's name, as this order can be random.
+        # across different Python runs.
+        # so sort it to get stable initialization order.
+        for attrname in sorted(module_dict.keys()):
+            modspec = module_dict[attrname]
             self.moduledict[attrname] = init_module(modspec['name'],
                                                     modspec['params'],
                                                     modspec['init'])
@@ -26,6 +30,9 @@ class JSONNet(nn.Module):  # type: ignore
         # if you want to do some initialization that depends on multiple
         # modules.
         # I like to separate this from architecture spec.
+        # for x, y in self.named_parameters():
+        #     print(x, y.detach().cpu().numpy().mean(),
+        #           y.detach().cpu().numpy().std())
 
     def forward(self, *inputs: list, state_dict: Union[dict, None] = None,
                 verbose: bool = False) -> io_type:
