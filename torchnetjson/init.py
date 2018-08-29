@@ -1,13 +1,16 @@
 """initializers"""
 
-from typing import Callable
+from typing import Callable, Union, Iterable, Optional
 
 from torch import nn
 
 _init_mapping_official = dict()
 
 
-def _standard_init(mod: nn.Module, init: dict):
+def standard_init(mod: nn.Module, init: dict, *,
+                  attrs_to_init: Optional[Iterable[str]]=None):
+    if attrs_to_init is None:
+        attrs_to_init = {'weight'}
     # works for those modules with `weight` and possibly `bias`.
     assert init.keys() == {'strategy', 'parameters'}
 
@@ -17,10 +20,22 @@ def _standard_init(mod: nn.Module, init: dict):
         'kaiming_normal': nn.init.kaiming_normal_
     }[init['strategy']]
 
-    init_inner(mod.weight, **init['parameters'])
+    for attr in attrs_to_init:
+        init_inner(getattr(mod, attr), **init['parameters'])
 
     if mod.bias is not None:
         nn.init.constant_(mod.bias, 0)
+
+
+def bn_init_passthrough(mod: Union[nn.BatchNorm1d,
+                                   nn.BatchNorm2d,
+                                   nn.BatchNorm3d],
+                        init: dict):
+    # set scale to 1, and bias to 0
+    assert init == {}
+    if mod.affine:
+        mod.bias.data.zero_()
+        mod.weight.data.fill_(1)
 
 
 def _register_init_official(name: str,
@@ -33,9 +48,10 @@ def _register_init_official(name: str,
 
 def _register_init_official_loader() -> None:
     # TODO: make this kind of automatic.
-    _register_init_official('torch.nn.conv2d', _standard_init)
-    _register_init_official('torch.nn.convtranspose2d', _standard_init)
-    _register_init_official('torch.nn.linear', _standard_init)
+    _register_init_official('torch.nn.conv2d', standard_init)
+    _register_init_official('torch.nn.convtranspose2d', standard_init)
+    _register_init_official('torch.nn.linear', standard_init)
+    _register_init_official('torch.nn.batchnorm2d', bn_init_passthrough)
 
 
 _register_init_official_loader()
