@@ -17,6 +17,7 @@
 # to achieve this, we should pass the same intermediate over and over
 from typing import Dict
 import torch
+from torch.nn import functional
 from .net import JSONNet
 from .typing import io_type, op_constructor_type, op_type
 
@@ -79,8 +80,43 @@ def _detach_op(net: JSONNet) -> op_type:
     return _op_fn
 
 
+def _sum_op(net: JSONNet) -> op_type:
+    def _op_fn(inputs: io_type) -> io_type:
+        if isinstance(inputs, tuple):
+            return sum(inputs)
+        else:
+            raise TypeError
+
+    return _op_fn
+
+
+def _loss_op(net: JSONNet, *, loss_type: str, kwargs: dict,
+             factor: float = 1.0) -> op_type:
+    def _op_fn(inputs: io_type) -> io_type:
+        if isinstance(inputs, tuple):
+            computed, target = inputs
+        elif isinstance(inputs, torch.Tensor):
+            # single input, assume 0 as target.
+            computed, target = inputs, torch.zeros_like(inputs)
+        else:
+            raise TypeError
+
+        if loss_type == 'l1':
+            loss_fn = functional.l1_loss
+        elif loss_type == 'l2':
+            loss_fn = functional.mse_loss
+        else:
+            raise ValueError
+
+        return factor * loss_fn(computed, target, **kwargs)
+
+    return _op_fn
+
+
 _op_dict: Dict[str, op_constructor_type] = {
     'module': _module_op,
     'sequential': _sequential_op,
     'detach': _detach_op,
+    'sum': _sum_op,
+    'loss': _loss_op,
 }

@@ -10,7 +10,7 @@ _init_mapping_official = dict()
 def standard_init(mod: nn.Module, init: dict, *,
                   # use tuple, as order of initialization
                   # matters for or determinism.
-                  attrs_to_init: Tuple[str, ...] = ('weight',)):
+                  attrs_to_init: Tuple[str, ...] = ('weight',)) -> None:
     # works for those modules with `weight` and possibly `bias`.
     assert init.keys() == {'strategy', 'parameters'}
 
@@ -30,7 +30,7 @@ def standard_init(mod: nn.Module, init: dict, *,
 def bn_init_passthrough(mod: Union[nn.BatchNorm1d,
                                    nn.BatchNorm2d,
                                    nn.BatchNorm3d],
-                        init: dict):
+                        init: dict) -> None:
     # set scale to 1, and bias to 0
     assert init == {}
     if mod.affine:

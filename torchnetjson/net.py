@@ -19,6 +19,9 @@ class JSONNet(nn.Module):  # type: ignore
     def get_module(self, name: str) -> nn.Module:
         return self.moduledict[name]
 
+    def get_module_optional(self, name: str) -> Optional[nn.Module]:
+        return self.get_module(name) if name in self.moduledict else None
+
     def __init__(self, param_dict: dict) -> None:
         super().__init__()
         self.__param_dict = param_dict
