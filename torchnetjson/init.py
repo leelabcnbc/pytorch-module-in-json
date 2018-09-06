@@ -10,7 +10,8 @@ _init_mapping_official = dict()
 def standard_init(mod: nn.Module, init: dict, *,
                   # use tuple, as order of initialization
                   # matters for or determinism.
-                  attrs_to_init: Tuple[str, ...] = ('weight',)) -> None:
+                  attrs_to_init: Tuple[str, ...] = ('weight',),
+                  attrs_to_init_zero_optional: Tuple[str, ...] = ('bias',)) -> None:
     # works for those modules with `weight` and possibly `bias`.
     assert init.keys() == {'strategy', 'parameters'}
 
@@ -20,11 +21,14 @@ def standard_init(mod: nn.Module, init: dict, *,
         'kaiming_normal': nn.init.kaiming_normal_
     }[init['strategy']]
 
-    for attr in attrs_to_init:
-        init_inner(getattr(mod, attr), **init['parameters'])
+    state_dict = mod.state_dict()
 
-    if mod.bias is not None:
-        nn.init.constant_(mod.bias, 0)
+    for attr in attrs_to_init:
+        init_inner(state_dict[attr], **init['parameters'])
+
+    for attr_opt_zero in attrs_to_init_zero_optional:
+        if attr_opt_zero in state_dict:
+            nn.init.constant_(state_dict[attr_opt_zero], 0)
 
 
 def bn_init_passthrough(mod: Union[nn.BatchNorm1d,
