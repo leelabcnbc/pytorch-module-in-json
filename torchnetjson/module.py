@@ -21,6 +21,7 @@ def _register_module_official_loader() -> None:
     _register_module_official('torch.nn.softplus', nn.Softplus)
     _register_module_official('torch.nn.linear', nn.Linear)
     _register_module_official('torch.nn.batchnorm2d', nn.BatchNorm2d)
+    _register_module_official('torch.nn.tanh', nn.Tanh)
 
 
 _register_module_official_loader()
