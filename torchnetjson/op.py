@@ -120,3 +120,11 @@ _op_dict: Dict[str, op_constructor_type] = {
     'sum': _sum_op,
     'loss': _loss_op,
 }
+
+
+def register_op_custom(name: str, op: op_constructor_type) -> None:
+    # this should be called by user code to register modules they want.
+    # TODO: more strict check later.
+    assert name.lower() == name
+    assert name.startswith('custom.')
+    _op_dict[name] = op
