@@ -11,7 +11,8 @@ def standard_init(mod: nn.Module, init: dict, *,
                   # use tuple, as order of initialization
                   # matters for or determinism.
                   attrs_to_init: Tuple[str, ...] = ('weight',),
-                  attrs_to_init_zero_optional: Tuple[str, ...] = ('bias',)) -> None:
+                  attrs_to_init_zero_optional: Tuple[str, ...] = ('bias',),
+                  strict=True) -> None:
     # works for those modules with `weight` and possibly `bias`.
     assert init.keys() == {'strategy', 'parameters'}
 
@@ -24,7 +25,8 @@ def standard_init(mod: nn.Module, init: dict, *,
     state_dict = mod.state_dict()
 
     for attr in attrs_to_init:
-        init_inner(state_dict[attr], **init['parameters'])
+        if strict or (attr in state_dict):
+            init_inner(state_dict[attr], **init['parameters'])
 
     for attr_opt_zero in attrs_to_init_zero_optional:
         if attr_opt_zero in state_dict:
