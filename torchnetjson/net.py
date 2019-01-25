@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Union, Optional
 from torch import nn, Tensor
 from .module import init_module
@@ -22,20 +23,27 @@ class JSONNet(nn.Module):  # type: ignore
     def get_module_optional(self, name: str) -> Optional[nn.Module]:
         return self.get_module(name) if name in self.moduledict else None
 
+    def get_param_dict(self):
+        # so that I can inspect inside. Sometimes I need to
+        # put some extra info in param dict to facilitate
+
+        return deepcopy(self.__param_dict)
+
     def __init__(self, param_dict: dict) -> None:
         super().__init__()
         self.__param_dict = param_dict
         self.moduledict = nn.ModuleDict()
+
         self._add_modules(param_dict['module_dict'])
-        # TODO some initialization stuff later.
-        # or I can do initialization in the module_dict directly.
-        # but that maybe a bit constrained.
-        # if you want to do some initialization that depends on multiple
-        # modules.
-        # I like to separate this from architecture spec.
-        # for x, y in self.named_parameters():
-        #     print(x, y.detach().cpu().numpy().mean(),
-        #           y.detach().cpu().numpy().std())
+
+        # this can be used to put useful aux info.
+        # for example, for maskcnn type models,
+        # you can use this to provide references to
+        # conv layers that need regularization, instead of writing slightly
+        # different loss function implementations every time.
+        # (for maskcnn type networks with different conv implementations)
+
+        self.extradict = dict()
 
     def forward(self, *inputs: list, state_dict: Union[dict, None] = None,
                 verbose: bool = False) -> io_type:
