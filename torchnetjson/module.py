@@ -22,6 +22,10 @@ def _register_module_official_loader() -> None:
     _register_module_official('torch.nn.linear', nn.Linear)
     _register_module_official('torch.nn.batchnorm2d', nn.BatchNorm2d)
     _register_module_official('torch.nn.tanh', nn.Tanh)
+    _register_module_official('torch.nn.maxpool2d', nn.MaxPool2d)
+    _register_module_official('torch.nn.avgpool2d', nn.AvgPool2d)
+
+    _register_module_official('torch.nn.batchnorm1d', nn.BatchNorm1d)
 
 
 _register_module_official_loader()

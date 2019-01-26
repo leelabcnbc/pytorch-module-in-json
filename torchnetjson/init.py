@@ -69,6 +69,7 @@ def _register_init_official_loader() -> None:
     _register_init_official('torch.nn.convtranspose2d', standard_init)
     _register_init_official('torch.nn.linear', standard_init)
     _register_init_official('torch.nn.batchnorm2d', bn_init_passthrough)
+    _register_init_official('torch.nn.batchnorm1d', bn_init_passthrough)
 
 
 _register_init_official_loader()
