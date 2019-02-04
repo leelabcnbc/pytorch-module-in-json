@@ -27,6 +27,8 @@ def _register_module_official_loader() -> None:
 
     _register_module_official('torch.nn.batchnorm1d', nn.BatchNorm1d)
 
+    _register_module_official('torch.nn.dropout', nn.Dropout)
+
 
 _register_module_official_loader()
 
