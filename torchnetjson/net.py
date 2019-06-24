@@ -51,7 +51,7 @@ class JSONNet(nn.Module):  # type: ignore
         # checking internal state, etc.
         # it should be a subset of intermediate_dict
         # I will basically do things according to op_list
-        temp_dict: dict = {'inputs': inputs}
+        temp_dict: dict = {'inputs': tuple(inputs)}
         temp_dict.update({f'input{i}': v for i, v in enumerate(inputs)})
         if verbose:
             print('=====initial temp dict=====')
