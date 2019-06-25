@@ -82,7 +82,10 @@ class JSONNet(nn.Module):  # type: ignore
         elif isinstance(io_spec, list):
             return tuple(temp_dict[x] for x in io_spec)
         elif io_spec is None:
-            return None  # some op takes no input.
+            raise RuntimeError
+            # really, if something does not take IO, then the computation should not be
+            # done at runtime.
+            # return None  # some op takes no input.
         else:
             raise NotImplementedError
 
