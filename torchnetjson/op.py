@@ -56,6 +56,19 @@ def _module_op(net: JSONNet, module_name: str, *,
     return _op_fn
 
 
+def _module_repeat_op(net: JSONNet, module_name: str):
+    # this supports applying a module to each element of an input.
+    # `inputs` can be only tuple of Tensor,
+    # module here only supports ONE Tensor input and return ONE Tensor output
+    def _op_fn(inputs: io_type) -> io_type:
+        mod = net.get_module(module_name)
+        ret = []
+        assert isinstance(inputs, tuple)
+        for x in inputs:
+            ret.append(mod(x))
+        return tuple(ret)
+
+
 def _sequential_op(net: JSONNet, list_of_op_specs: list) -> op_type:
     # get module list
     op_list = [get_op(net, op_spec) for op_spec in list_of_op_specs]
@@ -84,6 +97,16 @@ def _sum_op(net: JSONNet) -> op_type:
     def _op_fn(inputs: io_type) -> io_type:
         if isinstance(inputs, tuple):
             return sum(inputs)
+        else:
+            raise TypeError
+
+    return _op_fn
+
+
+def _stack_op(net: JSONNet, dim: int = 0) -> op_type:
+    def _op_fn(inputs: io_type) -> io_type:
+        if isinstance(inputs, tuple):
+            return torch.stack(inputs, dim)
         else:
             raise TypeError
 
@@ -119,6 +142,8 @@ _op_dict: Dict[str, op_constructor_type] = {
     'detach': _detach_op,
     'sum': _sum_op,
     'loss': _loss_op,
+    'stack': _stack_op,
+    'module_repeat': _module_repeat_op,
 }
 
 

@@ -78,9 +78,9 @@ class JSONNet(nn.Module):  # type: ignore
     def get_io(io_spec: Optional[Union[str, list]],
                temp_dict: dict) -> io_type:
         if isinstance(io_spec, str):
-            return temp_dict[io_spec]
+            ret = temp_dict[io_spec]
         elif isinstance(io_spec, list):
-            return tuple(temp_dict[x] for x in io_spec)
+            ret = tuple(temp_dict[x] for x in io_spec)
         elif io_spec is None:
             raise RuntimeError
             # really, if something does not take IO, then the computation should not be
@@ -89,14 +89,23 @@ class JSONNet(nn.Module):  # type: ignore
         else:
             raise NotImplementedError
 
+        JSONNet.check_io(ret)
+        return ret
+
     @staticmethod
     def set_io(name: str, value: io_type, temp_dict: dict) -> None:
+        # check it's indeed io_type
+        # https://stackoverflow.com/questions/28100078/calling-static-method-from-inside-the-class
+        JSONNet.check_io(value)
+        temp_dict[name] = value
+
+    @staticmethod
+    def check_io(value: io_type) -> None:
         # check it's indeed io_type
         if not isinstance(value, Tensor):
             assert isinstance(value, tuple)
             for _ in value:
                 assert isinstance(_, Tensor)
-        temp_dict[name] = value
 
     def _forward_one_op(self, op_spec_full: dict, temp_dict: dict) -> None:
         from .op import get_op
