@@ -68,6 +68,8 @@ def _module_repeat_op(net: JSONNet, module_name: str):
             ret.append(mod(x))
         return tuple(ret)
 
+    return _op_fn
+
 
 def _sequential_op(net: JSONNet, list_of_op_specs: list) -> op_type:
     # get module list
