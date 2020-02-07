@@ -55,22 +55,19 @@ class JSONNet(nn.Module):  # type: ignore
         temp_dict.update({f'input{i}': v for i, v in enumerate(inputs)})
         if verbose:
             print('=====initial temp dict=====')
-            print(temp_dict)
+            JSONNet.print_status(temp_dict)
             print('\n')
         op_list = self.__param_dict['op_list']
         for i, op_spec in enumerate(op_list):
             if verbose:
-                print(f'=====op {i} start=====')
+                print(f'=====op {i}, {op_spec["name"]} start=====')
             # this function does the actual work.
             # it can be recursively called.
             self._forward_one_op(op_spec, temp_dict)
             if verbose:
                 print(f'=====op {i} end=====')
                 print('\n')
-        if verbose:
-            print('=====final temp dict=====')
-            print(temp_dict)
-            print('\n')
+                JSONNet.print_status(temp_dict)
 
         return self.get_io(self.__param_dict['out'], temp_dict)
 
@@ -98,6 +95,17 @@ class JSONNet(nn.Module):  # type: ignore
         # https://stackoverflow.com/questions/28100078/calling-static-method-from-inside-the-class
         JSONNet.check_io(value)
         temp_dict[name] = value
+
+    @staticmethod
+    def print_status(temp_dict):
+        for x, y in temp_dict.items():
+            print(x, type(y))
+            if type(y) is Tensor:
+                print(y.size())
+            elif type(y) is tuple:
+                print([z.size() for z in y])
+            else:
+                raise RuntimeError
 
     @staticmethod
     def check_io(value: io_type) -> None:
