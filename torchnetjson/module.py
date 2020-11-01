@@ -19,6 +19,7 @@ def _register_module_official_loader() -> None:
     _register_module_official('torch.nn.convtranspose2d', nn.ConvTranspose2d)
     _register_module_official('torch.nn.relu', nn.ReLU)
     _register_module_official('torch.nn.softplus', nn.Softplus)
+    _register_module_official('torch.nn.sigmoid', nn.Sigmoid)
     _register_module_official('torch.nn.linear', nn.Linear)
     _register_module_official('torch.nn.batchnorm2d', nn.BatchNorm2d)
     _register_module_official('torch.nn.tanh', nn.Tanh)
